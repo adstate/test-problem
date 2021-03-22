@@ -1,15 +1,17 @@
 import React from 'react';
+import {useDispatch} from 'react-redux';
 import styled from 'styled-components';
 import TreeView from '@material-ui/lab/TreeView';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import TreeItem from '@material-ui/lab/TreeItem';
 import NodeState from '../models/nodeState';
+import Button from '@material-ui/core/Button';
+import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
+import {getNodeForEdit} from '../actions/database';
 
 interface Props {
-    onSelectNode: (nodeId: string) => void;
     dbTree?: any;
-    selected: string;
 }
 
 interface RenderTree {
@@ -19,6 +21,15 @@ interface RenderTree {
     state: NodeState;
     children?: RenderTree[];
 }
+
+const Container = styled.div`
+    display: flex;
+    align-items: center;
+`;
+
+const Toolbar = styled.div`
+    padding: 40px;
+`;
 
 const TreeViewContainer = styled.div`
     width: 250px;
@@ -44,16 +55,20 @@ const StyledTreeItem = styled(TreeItem)<{state: NodeState}>`
   `}
 `;
 
-const DbTreeView: React.FC<Props> = ({dbTree, onSelectNode, selected}) => {
+const DbTreeView: React.FC<Props> = ({dbTree}) => {
+
+    const dispatch = useDispatch();
+
+    const [selected, setSelected] = React.useState<string>('');
 
     const onNodeSelect = (event: any, nodeId: string) => {
       const nodeElement: Element = event.target.parentElement.parentElement;
       const nodeState = nodeElement.getAttribute('state');
 
       if (nodeState === NodeState.Deleted) {
-        onSelectNode('');
+        setSelected('');
       } else {
-        onSelectNode(nodeId);
+        setSelected(nodeId);
       }
     };
 
@@ -61,8 +76,10 @@ const DbTreeView: React.FC<Props> = ({dbTree, onSelectNode, selected}) => {
       event.preventDefault();
     };
 
-    const onSelectHandler = (keys: any[]) => {
-        onSelectNode(keys[0]);
+    const moveNodeHandler = () => {
+        if (selected) {
+            dispatch(getNodeForEdit(selected));
+        }
     };
 
     const renderTree = (node: RenderTree) => (
@@ -79,23 +96,25 @@ const DbTreeView: React.FC<Props> = ({dbTree, onSelectNode, selected}) => {
     );
 
     return (
-        <TreeViewContainer>
-            {
-                dbTree && <TreeView
-                    defaultCollapseIcon={<ExpandMoreIcon />}
-                    defaultExpanded={['1', '2', '3']}
-                    defaultExpandIcon={<ChevronRightIcon />}
-                    onNodeSelect={onNodeSelect}
-                >
-                    {renderTree(dbTree)}
-                </TreeView>
-            }
-            {/* {
-                dbTree && <div>
-                    {renderCustomTree(dbTree)}
-                </div>
-            } */}
-        </TreeViewContainer>
+        <Container>
+            <Toolbar>
+                <Button variant="contained" onClick={moveNodeHandler}>
+                    <ChevronLeftIcon />
+                </Button>
+            </Toolbar>
+            <TreeViewContainer>
+                {
+                    dbTree && <TreeView
+                        defaultCollapseIcon={<ExpandMoreIcon />}
+                        defaultExpanded={['1', '2', '3']}
+                        defaultExpandIcon={<ChevronRightIcon />}
+                        onNodeSelect={onNodeSelect}
+                    >
+                        {renderTree(dbTree)}
+                    </TreeView>
+                }
+            </TreeViewContainer>
+        </Container>
     );
 };
 

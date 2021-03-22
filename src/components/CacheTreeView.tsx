@@ -75,10 +75,6 @@ const CacheTreeView: React.FC<Props> = ({cacheTree}) => {
     const [expanded, setExpanded] = React.useState<string[]>([]);
     const [operation, setOperation] = React.useState<string>('');
 
-    const [edit, setEdit] = React.useState<boolean>(false);
-    const [add, setAdd] = React.useState<boolean>(false);
-    const [showDelete, setShowDelete] = React.useState<boolean>(false);
-
     const [selected, setSelected] = React.useState<string>('');
 
     const onNodeSelect = (event: any, nodeId: string) => {
@@ -99,24 +95,18 @@ const CacheTreeView: React.FC<Props> = ({cacheTree}) => {
     };
 
     const onEditNodeHandler = () => {
-      //setEdit(true);
       setOperation('edit');
     };
 
     const onAddNodeHandler = () => {
-      //setAdd(true);
       setOperation('add');
     };
 
     const onDeleteNodeHandler = () => {
-      //setShowDelete(true);
       setOperation('delete');
     };
 
     const onCloseEdit = () => {
-      // setEdit(false);
-      // setAdd(false);
-      // setShowDelete(false);
       setOperation('');
     };
 

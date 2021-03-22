@@ -37,26 +37,16 @@ const DbEditor: React.FC = React.memo(() => {
 
     const dispatch = useDispatch();
 
-    const [selectedDbNodeId, setSelectedDbNodeId] = React.useState<string>('');
+    
     const dbTree = useSelector((state: RootState) => {
       console.log('convert db tree', state.database.table);
       return dbToTree(state.database.table)[0];
     });
 
-    const selectDbNodeHandler = (nodeId: string) => {
-        setSelectedDbNodeId(nodeId);
-    };
-
     const cacheTree = useSelector((state: RootState) => {      
         console.log('convert cache tree', state.cache.table);
         return dbToTree(state.cache.table);
     });
-
-    const moveNodeHandler = () => {
-        if (selectedDbNodeId) {
-            dispatch(getNodeForEdit(selectedDbNodeId));
-        }
-    };
 
     const resetHandler = () => {
         dispatch(resetDatabase());
@@ -70,10 +60,7 @@ const DbEditor: React.FC = React.memo(() => {
         <Container>
             <EditorContent>
                 <CacheTreeView cacheTree={cacheTree} />
-                <Button variant="contained" onClick={moveNodeHandler}>
-                    <ChevronLeftIcon />
-                </Button>
-                <DbTreeView dbTree={dbTree} onSelectNode={selectDbNodeHandler} selected={selectedDbNodeId}/>
+                <DbTreeView dbTree={dbTree} />
             </EditorContent>
             <EditorFooter>
                 <Button onClick={resetHandler}>Reset</Button>
