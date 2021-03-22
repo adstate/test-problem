@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import Input from '@material-ui/core/Input';
 import Button from '@material-ui/core/Button';
 import { RootState } from '../reducers';
+import { Divider } from '@material-ui/core';
 
 interface Props {
     nodeId?: string;
@@ -75,13 +76,15 @@ const CacheNodeEditor: React.FC<Props> = ({nodeId, parentId, onSave, onClose}) =
             <Content>
                 {(node) ? <Header>Edit {node.value}</Header> : <Header>Add child node for {parentNode && parentNode.value}</Header>}
                 
-                <form>
-                    <Input fullWidth value={newValue} onChange={handleChange} />
+                <form onSubmit={saveHandler}>
+                    <div>
+                        <Input fullWidth value={newValue} onChange={handleChange} />
+                    </div>
+                    <Footer>
+                        <Button onClick={onClose}>Cancel</Button>
+                        <Button type="submit" variant="contained" disabled={!newValue}>OK</Button>
+                    </Footer>
                 </form>
-                <Footer>
-                    <Button onClick={onClose}>Cancel</Button>
-                    <Button variant="contained" onClick={saveHandler}>OK</Button>
-                </Footer>
             </Content>
         </Container>
     );
