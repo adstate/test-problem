@@ -75,7 +75,12 @@ export const deleteNode = (id: string) => {
         const node = getState().cache.table[id];
 
         const deletedNodes: DbTable = {};
-        deletedNodes[id] = {...node, state: NodeState.Deleted};
+
+        if (node.state === NodeState.New) {
+            delete cache[id];
+        } else {
+            deletedNodes[id] = {...node, state: NodeState.Deleted};
+        }
 
         let childs = getChildren(id, cache);
 

@@ -62,7 +62,7 @@ const DbTreeView: React.FC<Props> = ({dbTree}) => {
     const dispatch = useDispatch();
 
     const onNodeSelect = (event: any, nodeId: string) => {
-      const nodeElement: Element = event.target.parentElement.parentElement;
+      const nodeElement: Element = event.target.closest('.MuiTreeItem-root');
       const nodeState = nodeElement.getAttribute('state');
 
       if (nodeState === NodeState.Deleted) {

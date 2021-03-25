@@ -101,8 +101,12 @@ export const applyChangesToDb = () => {
             }
         }
 
-        dispatch(applyChanges(changes));
-        dispatch(updateIndex(createDbParentIndex(getState().database.table)));
+        if (Object.keys(changes).length > 0) {
+            dispatch(applyChanges(changes));
+
+            const newIndex = createDbParentIndex(getState().database.table);
+            dispatch(updateIndex(newIndex));
+        }
 
         dispatch(clearCache());
 

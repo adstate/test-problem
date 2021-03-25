@@ -83,7 +83,7 @@ const CacheTreeView: React.FC<Props> = ({cacheTree, expanded}) => {
     }, [expanded]);
 
     const onNodeSelect = (event: any, nodeId: string) => {
-      const nodeElement: Element = event.target.parentElement.parentElement;
+      const nodeElement: Element = event.target.closest('.MuiTreeItem-root');
       const nodeState = nodeElement.getAttribute('state');
 
       if (nodeState === NodeState.Deleted) {
@@ -147,7 +147,6 @@ const CacheTreeView: React.FC<Props> = ({cacheTree, expanded}) => {
               {
                 cacheTree && <TreeView
                     defaultCollapseIcon={<ExpandMoreIcon />}
-                    //defaultExpanded={expanded}
                     expanded={expandedNodes}
                     defaultExpandIcon={<ChevronRightIcon />}
                     onNodeSelect={onNodeSelect}
