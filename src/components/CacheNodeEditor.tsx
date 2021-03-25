@@ -4,7 +4,6 @@ import styled from 'styled-components';
 import Input from '@material-ui/core/Input';
 import Button from '@material-ui/core/Button';
 import { RootState } from '../reducers';
-import { Divider } from '@material-ui/core';
 
 interface Props {
     nodeId?: string;
@@ -61,7 +60,7 @@ const CacheNodeEditor: React.FC<Props> = ({nodeId, parentId, onSave, onClose}) =
         if (node) {
             setNewValue(node.value);
         }
-    }, []);
+    }, [node]);
 
     const saveHandler = () => {
         if (node) {

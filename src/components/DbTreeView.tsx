@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {useDispatch} from 'react-redux';
 import styled from 'styled-components';
 import TreeView from '@material-ui/lab/TreeView';
@@ -55,44 +55,37 @@ const StyledTreeItem = styled(TreeItem)<{state: NodeState}>`
   `}
 `;
 
+let selected = '';
+
 const DbTreeView: React.FC<Props> = ({dbTree}) => {
 
     const dispatch = useDispatch();
-
-    const [selected, setSelected] = React.useState<string>('');
 
     const onNodeSelect = (event: any, nodeId: string) => {
       const nodeElement: Element = event.target.parentElement.parentElement;
       const nodeState = nodeElement.getAttribute('state');
 
       if (nodeState === NodeState.Deleted) {
-        setSelected('');
+        selected = '';
       } else {
-        setSelected(nodeId);
+        selected = nodeId;
       }
     };
 
-    const onLabelClick = (event: any) => {
+    const onLabelClick = useCallback((event: any) => {
       event.preventDefault();
-    };
+    }, []);
 
-    const moveNodeHandler = () => {
+    const moveNodeHandler = useCallback(() => {
         if (selected) {
             dispatch(getNodeForEdit(selected));
         }
-    };
+    }, [dispatch]);
 
     const renderTree = (node: RenderTree) => (
         <StyledTreeItem state={node.state} key={node.id} nodeId={node.id} label={node.value} onLabelClick={onLabelClick}>
           {Array.isArray(node.children) && node.children.map((node) => renderTree(node))}
         </StyledTreeItem>
-    );
-
-    const renderCustomTree = (nodes: RenderTree) => (
-        <div key={nodes.id}>
-            <div>{nodes.value}</div>
-            {Array.isArray(nodes.children) && nodes.children.map((node) => renderCustomTree(node))}
-        </div>
     );
 
     return (
@@ -106,7 +99,7 @@ const DbTreeView: React.FC<Props> = ({dbTree}) => {
                 {
                     dbTree && <TreeView
                         defaultCollapseIcon={<ExpandMoreIcon />}
-                        defaultExpanded={['1', '2', '3']}
+                        defaultExpanded={['1', '2', '3', '4', '5']}
                         defaultExpandIcon={<ChevronRightIcon />}
                         onNodeSelect={onNodeSelect}
                     >
@@ -118,4 +111,4 @@ const DbTreeView: React.FC<Props> = ({dbTree}) => {
     );
 };
 
-export default DbTreeView;
+export default React.memo(DbTreeView);

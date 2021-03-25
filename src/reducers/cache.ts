@@ -1,9 +1,9 @@
-import {MOVE_NODE, ADD_NODE, CHANGE_NODE, CLEAR_CACHE, CacheActions} from '../actions/cacheActionTypes';
-import CacheNode from '../models/cacheNode';
+import {MOVE_NODE, ADD_NODE, CHANGE_NODE, CLEAR_CACHE, DELETE_NODE, CacheActions} from '../actions/cacheActionTypes';
+import DbNode from '../models/dbNode';
 
 interface CacheState {
     table: {
-        [id: string]: CacheNode;
+        [id: string]: DbNode;
     },
     sequence: {
         prefix: string;
@@ -19,7 +19,7 @@ const initialState: CacheState = {
     }
 };
 
-export default function(state = initialState, action: CacheActions): CacheState {
+export default function cacheReducer(state = initialState, action: CacheActions): CacheState {
     switch (action.type) {
         case MOVE_NODE:
             return {
@@ -52,11 +52,20 @@ export default function(state = initialState, action: CacheActions): CacheState 
                 }
             }
 
-            case CLEAR_CACHE: {
-                return initialState;
+        case DELETE_NODE:
+            return {
+                ...state,
+                table: {
+                    ...state.table,
+                    ...action.payload.nodes
+                }
             }
+
+        case CLEAR_CACHE: {
+            return initialState;
+        }
 
         default:
             return state;
     }
-}
+};

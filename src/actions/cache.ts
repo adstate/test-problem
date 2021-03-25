@@ -1,15 +1,16 @@
-import {MOVE_NODE, ADD_NODE, CHANGE_NODE, CacheActions, CLEAR_CACHE} from './cacheActionTypes';
-import CacheNode from '../models/cacheNode';
+import {MOVE_NODE, ADD_NODE, CHANGE_NODE, CacheActions, CLEAR_CACHE, DELETE_NODE} from './cacheActionTypes';
+import DbNode from '../models/dbNode';
 import { RootState } from '../reducers';
 import NodeState from '../models/nodeState';
+import DbTable from '../models/dbTable';
 
 
-export const moveNode = (node: CacheNode): CacheActions => ({
+export const moveNode = (node: DbNode): CacheActions => ({
     type: MOVE_NODE,
     payload: node
 });
 
-export const addCacheNode = (id: string, node: CacheNode): CacheActions => ({
+export const addCacheNode = (id: string, node: DbNode): CacheActions => ({
     type: ADD_NODE,
     payload: {
         id,
@@ -17,11 +18,18 @@ export const addCacheNode = (id: string, node: CacheNode): CacheActions => ({
     }
 });
 
-export const changeNode = (id: string, node: CacheNode): CacheActions => ({
+export const changeNode = (id: string, node: DbNode): CacheActions => ({
     type: CHANGE_NODE,
     payload: {
         id,
         node
+    }
+});
+
+export const deleteNodes = (nodes: DbTable): CacheActions => ({
+    type: DELETE_NODE,
+    payload: {
+        nodes
     }
 });
 
@@ -57,16 +65,36 @@ export const addNode = (parentId: string, value: string) => {
     }
 };
 
+const getChildren = (nodeId: string, cache: DbTable) => {
+    return Object.values(cache).filter((node: DbNode) => node.parentId === nodeId) || [];
+};
+
 export const deleteNode = (id: string) => {
     return (dispatch: any, getState: () => RootState) => {
+        const cache = getState().cache.table;
         const node = getState().cache.table[id];
 
-        const cacheNode = {
-            ...node,
-            state: NodeState.Deleted
-        };
-        
-        dispatch(changeNode(id, cacheNode));
+        const deletedNodes: DbTable = {};
+        deletedNodes[id] = {...node, state: NodeState.Deleted};
+
+        let childs = getChildren(id, cache);
+
+        while (childs.length > 0) {
+            const children: DbNode[] = [];
+            childs.forEach((node: DbNode) => {
+                if (node.state === NodeState.New) {
+                   delete cache[node.id];
+                } else {
+                    deletedNodes[node.id] = {...node, state: NodeState.Deleted};
+                }
+                
+                children.push(...getChildren(node.id, cache));
+            });
+
+            childs = children;
+        }
+
+        dispatch(deleteNodes(deletedNodes));
     }
 };
 

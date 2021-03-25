@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {useDispatch} from 'react-redux';
 import styled from 'styled-components';
 import TreeView from '@material-ui/lab/TreeView';
@@ -14,6 +14,7 @@ import NodeState from '../models/nodeState';
 
 interface Props {
     cacheTree: any;
+    expanded: string[];
 }
 
 interface RenderTree {
@@ -69,73 +70,75 @@ const StyledTreeItem = styled(TreeItem)<{state: NodeState}>`
   `}
 `;
 
-const CacheTreeView: React.FC<Props> = ({cacheTree}) => {
-  const dispatch = useDispatch();
+let selected = '';
 
-    const [expanded, setExpanded] = React.useState<string[]>([]);
+const CacheTreeView: React.FC<Props> = ({cacheTree, expanded}) => {
+    const dispatch = useDispatch();
+
+    const [expandedNodes, setExpandedNodes] = React.useState<string[]>([]);
     const [operation, setOperation] = React.useState<string>('');
 
-    const [selected, setSelected] = React.useState<string>('');
+    React.useEffect(() => {
+      setExpandedNodes(expanded);
+    }, [expanded]);
 
     const onNodeSelect = (event: any, nodeId: string) => {
       const nodeElement: Element = event.target.parentElement.parentElement;
       const nodeState = nodeElement.getAttribute('state');
 
       if (nodeState === NodeState.Deleted) {
-        setSelected('');
+        selected = '';
       } else {
-        setSelected(nodeId);
+        selected = nodeId;
       }
 
       setOperation('');
     };
 
-    const onLabelClick = (event: any) => {
+    const onNodeToggle = (event: any, nodeIds: string[]) => {
+      setExpandedNodes(nodeIds);
+    };
+
+    const onLabelClick = useCallback((event: any) => {
       event.preventDefault();
-    };
+    }, []);
 
-    const onEditNodeHandler = () => {
+    const onEditNodeHandler = useCallback(() => {
       setOperation('edit');
-    };
+    }, []);
 
-    const onAddNodeHandler = () => {
+    const onAddNodeHandler = useCallback(() => {
       setOperation('add');
-    };
+    }, []);
 
-    const onDeleteNodeHandler = () => {
+    const onDeleteNodeHandler = useCallback(() => {
       setOperation('delete');
-    };
+    }, []);
 
-    const onCloseEdit = () => {
+    const onCloseEdit = useCallback(() => {
       setOperation('');
-    };
+    }, []);
 
-    const changeNodeHandler = (id: string, value: string) => {
+    const changeNodeHandler = useCallback((id: string, value: string) => {
       dispatch(editNode(id, value));
       setOperation('');
-    };
+    }, [dispatch]);
 
-    const addNodeHandler = (parentId: string, value: string) => {
+    const addNodeHandler = useCallback((parentId: string, value: string) => {
       dispatch(addNode(parentId, value));
       setOperation('');
-    };
+    }, [dispatch]);
 
-    const deleteNodeHandler = (id: string) => {
+    const deleteNodeHandler = useCallback((id: string) => {
       dispatch(deleteNode(id));
       setOperation('');
-    };
-
-    const renderTree = (nodes: RenderTree) => (
-        <StyledTreeItem
-          key={nodes.id}
-          nodeId={nodes.id}
-          label={nodes.value}
-          state={nodes.state}
-          onLabelClick={onLabelClick}
-        >
-          {Array.isArray(nodes.children) && nodes.children.map((node) => renderTree(node))}
-        </StyledTreeItem>
-      );
+    }, [dispatch]);
+      
+    const renderTree = (node: RenderTree) => (
+      <StyledTreeItem state={node.state} key={node.id} nodeId={node.id} label={node.value} onLabelClick={onLabelClick}>
+        {Array.isArray(node.children) && node.children.map((node) => renderTree(node))}
+      </StyledTreeItem>
+    );
 
     return (
       <div>
@@ -144,10 +147,11 @@ const CacheTreeView: React.FC<Props> = ({cacheTree}) => {
               {
                 cacheTree && <TreeView
                     defaultCollapseIcon={<ExpandMoreIcon />}
-                    defaultExpanded={['3']}
+                    //defaultExpanded={expanded}
+                    expanded={expandedNodes}
                     defaultExpandIcon={<ChevronRightIcon />}
-                    selected={selected}
                     onNodeSelect={onNodeSelect}
+                    onNodeToggle={onNodeToggle}
                 >
                   {cacheTree.map((node: RenderTree) => renderTree(node))}
                 </TreeView>
@@ -162,8 +166,8 @@ const CacheTreeView: React.FC<Props> = ({cacheTree}) => {
           </TreeViewToolbar>
         </Container>
         
-        { operation === 'edit' && selected && <CacheNodeEditor nodeId={selected} onSave={changeNodeHandler} onClose={onCloseEdit} />}
-        { operation === 'add' && selected && <CacheNodeEditor parentId={selected} onSave={addNodeHandler} onClose={onCloseEdit} />}
+        { operation === 'edit' && selected && <CacheNodeEditor nodeId={selected} onSave={changeNodeHandler} onClose={onCloseEdit} /> }
+        { operation === 'add' && selected && <CacheNodeEditor parentId={selected} onSave={addNodeHandler} onClose={onCloseEdit} /> }
         { operation === 'delete' && selected && <CacheNodeDelete nodeId={selected} onDelete={deleteNodeHandler} onClose={onCloseEdit} /> }
       </div>
     );

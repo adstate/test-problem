@@ -5,12 +5,8 @@ import Paper from '@material-ui/core/Paper';
 import DbTreeView from './DbTreeView';
 import CacheTreeView from './CacheTreeView';
 import Button from '@material-ui/core/Button';
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import { RootState } from '../reducers';
-import dbToTree from '../utils/dbToTree';
-import {moveNode, editNode} from '../actions/cache';
 import {applyChangesToDb, resetDatabase} from '../actions/database';
-import {getNodeForEdit} from '../actions/database';
+import {getCacheTree, getDatabaseTree, getCacheNodeIds} from '../selectors';
 
 const Container = styled(Paper)`
     position: relative;
@@ -36,17 +32,10 @@ const EditorFooter = styled.div`
 const DbEditor: React.FC = React.memo(() => {
 
     const dispatch = useDispatch();
-
     
-    const dbTree = useSelector((state: RootState) => {
-      console.log('convert db tree', state.database.table);
-      return dbToTree(state.database.table)[0];
-    });
-
-    const cacheTree = useSelector((state: RootState) => {      
-        console.log('convert cache tree', state.cache.table);
-        return dbToTree(state.cache.table);
-    });
+    const dbTree = useSelector(getDatabaseTree);
+    const cacheTree = useSelector(getCacheTree);
+    const cacheExpanded = useSelector(getCacheNodeIds);
 
     const resetHandler = () => {
         dispatch(resetDatabase());
@@ -54,12 +43,12 @@ const DbEditor: React.FC = React.memo(() => {
 
     const applyChanges = () => {
         dispatch(applyChangesToDb());
-    };
+    };    
 
     return (
         <Container>
             <EditorContent>
-                <CacheTreeView cacheTree={cacheTree} />
+                <CacheTreeView cacheTree={cacheTree} expanded={cacheExpanded} />
                 <DbTreeView dbTree={dbTree} />
             </EditorContent>
             <EditorFooter>

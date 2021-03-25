@@ -1,25 +1,23 @@
-import DbNode from '../models/dbNode';
-
-interface DbTable {
-  [id:string]: DbNode
-}
+import DbIndex from '../models/dbIndex';
+import DbTable from '../models/dbTable';
+import NodeState from '../models/nodeState';
 
 interface TreeNode {
   id?: string;
   parentId?: string | null;
   value?: string;
+  state?: NodeState;
   children: TreeNode[]
 }
 
-export default function(items: DbTable): TreeNode[] {
+export default function dbToTree(items: DbTable): TreeNode[] {
     const rootItems: TreeNode[] = [];
     const lookup: { [id: string]: TreeNode } = {};
 
     const orphanIds: null | Set<string> = new Set();    
   
-    for (const id in items) {
-      const item = items[id];
-      const itemId = id;
+    for (const item of Object.values(items)) {
+      const itemId = item.id;
       const parentId = item.parentId;
   
       if (!Object.prototype.hasOwnProperty.call(lookup, itemId)) {
@@ -41,7 +39,7 @@ export default function(items: DbTable): TreeNode[] {
         rootItems.push(treeItem);
       } else {
         if (!Object.prototype.hasOwnProperty.call(lookup, parentId)) {
-          lookup[parentId] = { 'children': [] };
+          lookup[parentId] = { children: [] };
           orphanIds.add(parentId);
         }
         
@@ -56,4 +54,20 @@ export default function(items: DbTable): TreeNode[] {
     }
   
     return rootItems;
+}
+
+export function createDbParentIndex(items: DbTable): DbIndex {
+  const index: DbIndex = {};
+
+  for (let node of Object.values(items)) {
+    if (!index[node.id]) {
+      index[node.id] = [];
+    }
+
+    if (node.parentId && index[node.parentId]) {
+      index[node.parentId].push(node.id);
+    }
   }
+
+  return index;
+}

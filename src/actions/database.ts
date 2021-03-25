@@ -2,29 +2,9 @@ import { RootState } from "../reducers";
 import {moveNode, clearCache} from './cache';
 import NodeState from '../models/nodeState';
 import DbTable from '../models/dbTable';
-
-export const APPLY_CHANGES = 'APPLY_CHANGES';
-export const NEXT_ID = 'NEXT_ID';
-export const SET_SEQUENCE = 'SET_SEQUENCE';
-export const RESET_DATABASE = 'RESET_DATABASE';
-
-interface SetSequenceAction {
-    type: typeof SET_SEQUENCE;
-    payload: {
-        next: number;
-    }
-}
-
-interface ResetDbAction {
-    type: typeof RESET_DATABASE;
-}
-
-interface ApplyChangesAction {
-    type: typeof APPLY_CHANGES;
-    payload: {
-        changes: DbTable
-    }
-}
+import {DatabaseActions, SET_SEQUENCE, APPLY_CHANGES, RESET_DATABASE, UPDATE_INDEX} from '../actions/databaseActionTypes';
+import DbIndex from "../models/dbIndex";
+import { createDbParentIndex } from "../utils/dbToTree";
 
 const setSequence = (next: number): DatabaseActions => ({
     type: SET_SEQUENCE,
@@ -40,18 +20,25 @@ const applyChanges = (changes: DbTable): DatabaseActions => ({
     }
 });
 
-export type DatabaseActions = SetSequenceAction | ResetDbAction | ApplyChangesAction;
+const updateIndex = (index: DbIndex): DatabaseActions => ({
+    type: UPDATE_INDEX,
+    payload: {
+        index
+    }
+});
 
 export const getNodeForEdit = (nodeId: string) => {
     return (dispatch: any, getState: () => RootState) => {
         const database = getState().database.table;
+        const cache = getState().cache.table;
         const node = database[nodeId];
 
-        if (node) {
+        if (node && !cache[nodeId] && node.state !== NodeState.Deleted) {
             const cacheNode = {
                 ...node,
                 state: NodeState.Origin
             };
+
             dispatch(moveNode(cacheNode));
         }
     };
@@ -60,7 +47,9 @@ export const getNodeForEdit = (nodeId: string) => {
 export const applyChangesToDb = () => {
     return (dispatch: any, getState: () => RootState) => {
         const cache = getState().cache.table;
+        const database = getState().database.table;
         const dbSequence = getState().database.sequence;
+        const dbIndex = getState().database.index;
         let id = dbSequence.next;
 
         const changes: DbTable = {};
@@ -89,12 +78,32 @@ export const applyChangesToDb = () => {
                 };
             } else if (node.state === NodeState.Deleted) {
                 changes[node.id] = {
-                    ...node
+                    ...node,
+                    state: NodeState.Deleted
                 };
+
+                let childs = dbIndex[node.id];
+
+                while (childs.length > 0) {
+                    const children: string[] = [];
+
+                    childs.forEach((nodeId) => {
+                        changes[nodeId] = {
+                            ...database[nodeId],
+                            state: NodeState.Deleted
+                        };
+
+                        children.push(...dbIndex[nodeId]);
+                    });
+        
+                    childs = children;
+                }
             }
         }
 
         dispatch(applyChanges(changes));
+        dispatch(updateIndex(createDbParentIndex(getState().database.table)));
+
         dispatch(clearCache());
 
         if (dbSequence.next !== id) {
