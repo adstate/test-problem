@@ -80,6 +80,7 @@ const CacheTreeView: React.FC<Props> = ({cacheTree, expanded}) => {
 
     React.useEffect(() => {
       setExpandedNodes(expanded);
+      selected = '';
     }, [expanded]);
 
     const onNodeSelect = (event: any, nodeId: string) => {

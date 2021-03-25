@@ -1,5 +1,5 @@
 import { RootState } from "../reducers";
-import {moveNode, clearCache} from './cache';
+import {moveNode, clearCache, setCache} from './cache';
 import NodeState from '../models/nodeState';
 import DbTable from '../models/dbTable';
 import {DatabaseActions, SET_SEQUENCE, APPLY_CHANGES, RESET_DATABASE, UPDATE_INDEX} from '../actions/databaseActionTypes';
@@ -53,6 +53,7 @@ export const applyChangesToDb = () => {
         let id = dbSequence.next;
 
         const changes: DbTable = {};
+        const deletedChilds: DbTable = {};
         const lookup: {[id: string]: string} = {};
 
         for (let node of Object.values(cache)) {
@@ -88,7 +89,7 @@ export const applyChangesToDb = () => {
                     const children: string[] = [];
 
                     childs.forEach((nodeId) => {
-                        changes[nodeId] = {
+                        deletedChilds[nodeId] = {
                             ...database[nodeId],
                             state: NodeState.Deleted
                         };
@@ -98,17 +99,22 @@ export const applyChangesToDb = () => {
         
                     childs = children;
                 }
+            } else if (node.state === NodeState.Origin) {
+                changes[node.id] = node;
             }
         }
 
         if (Object.keys(changes).length > 0) {
-            dispatch(applyChanges(changes));
+            dispatch(applyChanges({
+                ...changes,
+                ...deletedChilds
+            }));
 
             const newIndex = createDbParentIndex(getState().database.table);
             dispatch(updateIndex(newIndex));
-        }
 
-        dispatch(clearCache());
+            dispatch(setCache(changes));
+        }        
 
         if (dbSequence.next !== id) {
             dispatch(setSequence(id));

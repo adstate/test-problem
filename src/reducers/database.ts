@@ -23,13 +23,14 @@ const table = {
     '6': {id: '6', parentId: '3', value: 'Node6', state: NodeState.Origin},
     '7': {id: '7', parentId: '3', value: 'Node7', state: NodeState.Origin},
     '8': {id: '8', parentId: '6', value: 'Node8', state: NodeState.Origin},
+    '9': {id: '9', parentId: '4', value: 'Node9', state: NodeState.Origin},
 };
 
 const initialState: DatabaseState = {
     table,
     index: createDbParentIndex(table),
     sequence: {
-        next: 9
+        next: 10
     }
 };
 

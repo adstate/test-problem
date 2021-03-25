@@ -8,6 +8,7 @@ export const CHANGE_NODE = 'CHANGE_NODE';
 export const DELETE_NODE = 'DELETE_NODE';
 export const CLEAR_CACHE = 'CLEAR_CACHE';
 export const SEQUENCE_NEXT = 'SEQUENCE_NEXT';
+export const SET_CACHE = 'SET_CACHE';
 
 
 interface MoveNodeAction {
@@ -46,4 +47,11 @@ interface ClearCacheAction {
     type: typeof CLEAR_CACHE;
 }
 
-export type CacheActions = MoveNodeAction | AddCacheNodeAction | ChangeNodeAction | SequenceNextAction | ClearCacheAction | DeleteNodeAction;
+interface SetCacheAction {
+    type: typeof SET_CACHE;
+    payload: {
+        table: DbTable
+    }
+}
+
+export type CacheActions = MoveNodeAction | AddCacheNodeAction | ChangeNodeAction | SequenceNextAction | ClearCacheAction | DeleteNodeAction | SetCacheAction;

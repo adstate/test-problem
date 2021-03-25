@@ -1,4 +1,4 @@
-import {MOVE_NODE, ADD_NODE, CHANGE_NODE, CacheActions, CLEAR_CACHE, DELETE_NODE} from './cacheActionTypes';
+import {MOVE_NODE, ADD_NODE, CHANGE_NODE, CacheActions, CLEAR_CACHE, DELETE_NODE, SET_CACHE} from './cacheActionTypes';
 import DbNode from '../models/dbNode';
 import { RootState } from '../reducers';
 import NodeState from '../models/nodeState';
@@ -102,6 +102,13 @@ export const deleteNode = (id: string) => {
         dispatch(deleteNodes(deletedNodes));
     }
 };
+
+export const setCache = (table: DbTable) => ({
+    type: SET_CACHE,
+    payload: {
+        table
+    }
+});
 
 export const clearCache = () => ({
     type: CLEAR_CACHE
