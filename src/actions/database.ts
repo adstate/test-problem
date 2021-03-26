@@ -113,8 +113,14 @@ export const applyChangesToDb = () => {
             const newIndex = createDbParentIndex(getState().database.table);
             dispatch(updateIndex(newIndex));
 
+            for (let nodeId of Object.keys(deletedChilds)) {
+                if (changes[nodeId]) {
+                    changes[nodeId].state = NodeState.Deleted;
+                }
+            }
+
             dispatch(setCache(changes));
-        }        
+        }
 
         if (dbSequence.next !== id) {
             dispatch(setSequence(id));
