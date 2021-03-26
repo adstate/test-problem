@@ -33,6 +33,28 @@ export const deleteNodes = (nodes: DbTable): CacheActions => ({
     }
 });
 
+export const moveNodeToCache = (node: DbNode) => {
+    return (dispatch: any, getState: () => RootState) => {
+        const cache = getState().cache.table;
+        const parentNode = (node.parentId) ? cache[node.parentId] : null;
+        let deletedChilds: DbTable = {};
+
+        if (parentNode) {
+            if (parentNode.state === NodeState.Deleted) {
+                node.state = NodeState.Deleted;
+            }
+
+            deletedChilds = getChildsForDelete(node, cache);
+        }
+        
+        dispatch(moveNode(node));
+
+        if (Object.keys(deletedChilds).length > 0) {
+            dispatch(deleteNodes(deletedChilds));
+        }
+    };
+}
+
 export const editNode = (id: string, value: string) => {
     return (dispatch: any, getState: () => RootState) => {
         const cache = getState().cache.table;
@@ -102,6 +124,29 @@ export const deleteNode = (id: string) => {
         dispatch(deleteNodes(deletedNodes));
     }
 };
+
+function getChildsForDelete(parentNode: DbNode, cache: DbTable) {
+    let childs = getChildren(parentNode.id, cache);
+    const deletedNodes: DbTable = {};
+
+    while (childs.length > 0) {
+        const children: DbNode[] = [];
+
+        childs.forEach((node: DbNode) => {
+            if (node.state === NodeState.New) {
+               delete cache[node.id];
+            } else {
+                deletedNodes[node.id] = {...node, state: NodeState.Deleted};
+            }
+            
+            children.push(...getChildren(node.id, cache));
+        });
+
+        childs = children;
+    }
+
+    return deletedNodes;
+}
 
 export const setCache = (table: DbTable) => ({
     type: SET_CACHE,

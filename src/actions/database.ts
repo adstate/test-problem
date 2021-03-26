@@ -1,5 +1,5 @@
 import { RootState } from "../reducers";
-import {moveNode, clearCache, setCache} from './cache';
+import {clearCache, setCache, moveNodeToCache} from './cache';
 import NodeState from '../models/nodeState';
 import DbTable from '../models/dbTable';
 import {DatabaseActions, SET_SEQUENCE, APPLY_CHANGES, RESET_DATABASE, UPDATE_INDEX} from '../actions/databaseActionTypes';
@@ -39,7 +39,7 @@ export const getNodeForEdit = (nodeId: string) => {
                 state: NodeState.Origin
             };
 
-            dispatch(moveNode(cacheNode));
+            dispatch(moveNodeToCache(cacheNode));
         }
     };
 };
